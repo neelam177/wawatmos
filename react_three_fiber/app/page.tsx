@@ -1,10 +1,12 @@
 "use client";
 // // import Demo from "@/components/Demo";
 import CanvasComponent from "@/components/CanvasComponent";
+
 export default function Home() {
   return (
     <div>
       <CanvasComponent/>
+      
     </div>
   );
 }
@@ -23,9 +25,9 @@ export default function Home() {
 //       <ScrollControls pages={3} damping={0.15}>
 //         <CameraRig />
 
-//         <SceneOne />
-//         {/* <SceneTwo />
-//         <SceneThree /> */}
+        // <SceneOne />
+        //  <SceneTwo />
+        // <SceneThree /> 
 //       </ScrollControls>
 //     </Canvas>
 //   );
