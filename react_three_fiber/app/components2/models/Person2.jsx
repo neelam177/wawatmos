@@ -8,11 +8,10 @@ Source: https://sketchfab.com/3d-models/person-1b7eda8e39fd4567ba1c9a840fdcf4fb
 Title: Person
 */
 
-import React from 'react'
 import { useGLTF } from '@react-three/drei'
 
-export function Model(props) {
-  const { nodes, materials } = useGLTF('/person2-transformed.glb')
+export function Person2Model(props) {
+  const { nodes, materials } = useGLTF('/models/person2-transformed.glb')
   return (
     <group {...props} dispose={null}>
       <mesh geometry={nodes.Object_2.geometry} material={materials.material_0} rotation={[-Math.PI / 2, 0, 0]} />
@@ -20,4 +19,4 @@ export function Model(props) {
   )
 }
 
-useGLTF.preload('/person2-transformed.glb')
+useGLTF.preload('/models/person2-transformed.glb')

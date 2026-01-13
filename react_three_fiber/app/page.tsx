@@ -1,15 +1,20 @@
 "use client";
 // // import Demo from "@/components/Demo";
-import CanvasComponent from "@/components/CanvasComponent";
+// import CanvasComponent from "@/components/CanvasComponent";
+import CanvasComponent from "./components2/CanvasComponent";
+
 
 export default function Home() {
   return (
     <div>
       <CanvasComponent/>
-      
+            {/* <CanvasComponent/> */}
+
     </div>
   );
 }
+
+
 // import { Canvas } from "@react-three/fiber";
 // import { ScrollControls, Scroll } from "@react-three/drei";
 // import CameraRig from "@/components/CameraRig";
