@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parle Happy Happy Morph</title>
+    <style>
+        body { margin: 0; background: #000; color: white; font-family: 'Arial', sans-serif; }
+        canvas { position: fixed; top: 0; left: 0; outline: none; }
+        #scroll-proxy { height: 400vh; } /* 4x screen height for smooth scrolling */
+        .content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+        }
+        h1 { font-size: 3rem; margin: 0; text-transform: uppercase; letter-spacing: 5px; }
+    </style>
+</head>
+<body>
+
+    <div id="scroll-proxy"></div>
+    
+    <div class="content">
+        <h1 id="caption">Happy Happy</h1>
+        <p>Scroll to taste the joy</p>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+
+        // 1. Scene setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document.body.appendChild(renderer.domElement);
+
+        // 2. Texture Loading with error handling
+        const loader = new THREE.TextureLoader();
+        
+        // Create fallback colored textures
+        const canvas1 = document.createElement('canvas');
+        canvas1.width = 512;
+        canvas1.height = 512;
+        const ctx1 = canvas1.getContext('2d');
+        ctx1.fillStyle = '#ff6b6b';
+        ctx1.fillRect(0, 0, 512, 512);
+        ctx1.fillStyle = 'white';
+        ctx1.font = '48px Arial';
+        ctx1.fillText('Image 1', 180, 256);
+        
+        const canvas2 = document.createElement('canvas');
+        canvas2.width = 512;
+        canvas2.height = 512;
+        const ctx2 = canvas2.getContext('2d');
+        ctx2.fillStyle = '#4ecdc4';
+        ctx2.fillRect(0, 0, 512, 512);
+        ctx2.fillStyle = 'white';
+        ctx2.font = '48px Arial';
+        ctx2.fillText('Image 2', 180, 256);
+        
+        const tex1 = new THREE.CanvasTexture(canvas1);
+        const tex2 = new THREE.CanvasTexture(canvas2);
+        
+        // Try to load actual images
+        loader.load(
+            '../public/persons/img5.png',
+            (texture) => {
+                console.log('Image 1 loaded successfully');
+                material.uniforms.uTexture1.value = texture;
+                material.uniforms.uTexture1.value.needsUpdate = true;
+            },
+            undefined,
+            (error) => {
+                console.error('Error loading image 1:', error);
+                console.log('Using fallback texture 1');
+            }
+        );
+        
+        loader.load(
+            '../public/persons/img1.png',
+            (texture) => {
+                console.log('Image 2 loaded successfully');
+                material.uniforms.uTexture2.value = texture;
+                material.uniforms.uTexture2.value.needsUpdate = true;
+            },
+            undefined,
+            (error) => {
+                console.error('Error loading image 2:', error);
+                console.log('Using fallback texture 2');
+            }
+        );
+
+        // 3. Geometry & Shader
+        // We use a plane that fills the screen
+        const geometry = new THREE.PlaneGeometry(5, 3);
+        const material = new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: { value: 0 },
+                uProgress: { value: 0 },
+                uTexture1: { value: tex1 },
+                uTexture2: { value: tex2 }
+            },
+            vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform sampler2D uTexture1;
+                uniform sampler2D uTexture2;
+                uniform float uProgress;
+                varying vec2 vUv;
+
+                void main() {
+                    // Apply wave distortion to UV coordinates ONCE
+                    vec2 distortedUv = vUv + sin(vUv.y * 10.0 + uProgress * 10.0) * 0.05 * uProgress * (1.0 - uProgress);
+                    
+                    // Sample both textures with the SAME distorted UV
+                    vec4 color1 = texture2D(uTexture1, distortedUv);
+                    vec4 color2 = texture2D(uTexture2, distortedUv);
+                    
+                    // Blend them together - single wave effect on both
+                    float smoothProgress = smoothstep(0.0, 1.0, uProgress);
+                    gl_FragColor = mix(color1, color2, smoothProgress);
+                }
+            `
+        });
+
+        const mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+        camera.position.z = 2;
+
+        // 4. Scroll Interaction
+        window.addEventListener('scroll', () => {
+            const scrollPercent = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+            material.uniforms.uProgress.value = scrollPercent;
+
+            // Change text based on scroll
+            const caption = document.getElementById('caption');
+            if(scrollPercent > 0.5) {
+                caption.innerText = "Choco-Chip Loaded!";
+            } else {
+                caption.innerText = "Happy Happy";
+            }
+        });
+
+        // 5. Animation loop
+        function animate(time) {
+            material.uniforms.uTime.value = time * 0.001;
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>

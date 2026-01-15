@@ -19,20 +19,20 @@ export function AnimatedModel({
     const targetScale = active ? 1 : 0.6
     const targetOpacity = active ? 1 : 0
 
-    // SLOWER smooth scale transition
+    // Smooth scale transition
     groupRef.current.scale.lerp(
       new THREE.Vector3(targetScale, targetScale, targetScale),
-      delta * 2  // Reduced to 1 for slower, smoother animation
+      delta * 3
     )
 
-    // SLOWER smooth fade transition
+    // Smooth fade transition
     groupRef.current.traverse((obj: any) => {
       if (obj.material) {
         obj.material.transparent = true
         obj.material.opacity = THREE.MathUtils.lerp(
           obj.material.opacity ?? 0,
           targetOpacity,
-          delta * 2  // Reduced to 1 for slower, smoother animation
+          delta * 3
         )
       }
     })
